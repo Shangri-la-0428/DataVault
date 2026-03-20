@@ -68,8 +68,11 @@ def scan_directory(
                 if save and inventory is not None:
                     inventory.upsert(info)
 
-            except Exception:
+            except Exception as exc:
                 errors += 1
+                if os.environ.get("DATAVAULT_DEBUG"):
+                    import sys
+                    print(f"[datavault] scan error: {full}: {exc}", file=sys.stderr)
 
         if not recursive:
             break
