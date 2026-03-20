@@ -184,6 +184,10 @@ def main():
     p_reg.add_argument("path")
     p_reg.add_argument("--owner", required=True)
     p_reg.add_argument("--tags", default="")
+    p_reg.add_argument(
+        "--confirm", action="store_true", required=True,
+        help="Confirm registration (prevents accidental uploads)"
+    )
     p_reg.set_defaults(func=cmd_register)
 
     # version
