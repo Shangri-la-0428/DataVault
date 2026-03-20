@@ -2,79 +2,110 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**AI agent skill for data asset management.**
+> English version: [README_EN.md](README_EN.md)
 
-DataVault gives your AI a standardized workflow for scanning, classifying, and safely registering data assets. It's not a replacement for AI judgment — it's a consistent SOP that ensures every agent follows the same rules.
+**AI Agent 的数据资产管理 Skill。**
 
-## Why?
+DataVault 给你的 AI 提供一套标准化的工作流——扫描、分类、隐私检测、安全注册数据资产。它不是替代 AI 的判断力，而是一套**确定性 SOP**，让每个 Agent 每次都遵循同样的规则。
 
-Your AI can already read files and classify data. But without DataVault:
-- Every session applies different standards
-- Privacy checks are probabilistic (LLM might miss a credit card number)
-- There's no audit trail of what was checked
-- Users don't think to ask their AI to manage data assets
+## 为什么需要 DataVault？
 
-DataVault solves this by providing **deterministic rules** (regex-based PII detection, extension-based classification) plus a **standard pipeline** that AI agents follow automatically.
+你的 AI 已经能读文件、分类数据了。但没有 DataVault：
+- 每次对话应用的标准不一样
+- 隐私检查靠概率（LLM 可能漏掉信用卡号）
+- 没有审计记录
+- 用户想不到让 AI 管理数据资产
 
-## Install
+DataVault 提供**确定性规则**（正则 PII 检测、扩展名分类）加上**标准管线**，AI Agent 自动遵循。
 
-```bash
-pip install odv              # Standalone
-pip install odv[oasyce]      # With Oasyce bridge
-```
-
-## Usage
+## 安装
 
 ```bash
-datavault scan ~/Documents          # Scan & catalog files (SHA-256 hash)
-datavault classify                  # Auto-detect file types
-datavault privacy                   # Scan for PII (ID cards, credit cards, API keys)
-datavault report                    # Review results before publishing
-datavault register --confirm        # Register safe assets to Oasyce (explicit action)
+pip install odv              # 独立使用
+pip install odv[oasyce]      # 带 Oasyce 桥接
 ```
 
-### As an AI Skill
+## 使用
 
-When used by Claude Code, Cursor, or any AI coding agent:
-
-```
-User: "Help me manage my data assets in ~/Documents"
-
-AI (with DataVault skill):
-  1. datavault scan ~/Documents     -> catalogs 342 files
-  2. datavault privacy              -> flags 12 files with PII
-  3. datavault report --format json -> shows 330 safe files
-  4. "I found 330 files safe to register. 12 contain sensitive data
-     (credit card numbers, API keys). Want me to register the safe ones?"
-  5. datavault register --confirm   -> registers to Oasyce
+```bash
+datavault scan ~/Documents          # 扫描目录，SHA-256 哈希
+datavault classify                  # 自动检测文件类型
+datavault privacy                   # 扫描 PII（身份证、信用卡、API 密钥）
+datavault report                    # 查看报告
+datavault report --format json      # JSON 格式输出
+datavault register --confirm        # 注册安全资产到 Oasyce（需明确确认）
 ```
 
-Without DataVault, the AI would freestyle this process differently every time.
+### 作为 AI Skill 使用
 
-## Pipeline
+当 Claude Code、Cursor 或任何 AI 编程助手使用时：
 
 ```
-scan (local) -> classify (local) -> privacy (local) -> report (local)
-                                                           |
-                                                     user reviews
-                                                           |
-                                                    register (chain)
+用户: "帮我管理 ~/Documents 里的数据资产"
+
+AI（装了 DataVault skill）:
+  1. datavault scan ~/Documents     -> 扫描 342 个文件
+  2. datavault privacy              -> 标记 12 个包含 PII 的文件
+  3. datavault report --format json -> 显示 330 个安全文件
+  4. "发现 330 个安全文件，12 个包含敏感信息（信用卡号、API 密钥）。
+     要注册安全的那些吗？"
+  5. datavault register --confirm   -> 注册到 Oasyce
 ```
 
-Everything above the line is local and free. The register step is an explicit, confirmed action that publishes to the Oasyce network.
+没有 DataVault，AI 每次都会用不同的方式处理这个流程。
 
-## What Goes On-Chain?
+## 管线
 
-Only the **SHA-256 hash** and **metadata** (name, tags, rights type). Never the original file content. The file stays on your machine.
+```
+扫描 (本地) -> 分类 (本地) -> 隐私检测 (本地) -> 报告 (本地)
+                                                      |
+                                                  用户确认
+                                                      |
+                                                注册 (上链)
+```
 
-## Ecosystem
+分割线以上全部在本地完成，免费。注册是一个需要明确确认的操作，发布到 Oasyce 网络。
 
-| Component | Role |
-|-----------|------|
-| [oasyce-chain](https://github.com/oasyce/chain) | L1 consensus & settlement |
-| [oasyce](https://github.com/Shangri-la-0428/Oasyce_Claw_Plugin_Engine) | Python client, CLI, Dashboard |
-| **DataVault** (this repo) | AI agent data management skill |
+## 上链的是什么？
 
-## License
+只有 **SHA-256 哈希**和**元数据**（名称、标签、权利类型）。永远不上传原始文件内容。文件留在你的机器上。
+
+## 风险等级
+
+| 等级 | 含义 |
+|------|------|
+| safe | 未检测到 PII |
+| low | 仅 IP 地址 |
+| medium | 电子邮件地址 |
+| high | 电话号码、身份证 |
+| critical | 信用卡、API 密钥 |
+
+**铁律：** 标记为 `high` 或 `critical` 的文件永远不会被注册。
+
+## 生态
+
+```
+oasyce-chain  — L1 共识层（Go 应用链）
+oasyce CLI    — Python 薄客户端 + Dashboard
+DataVault     — AI Agent 数据管理 Skill（本仓库）
+```
+
+| 组件 | 定位 |
+|------|------|
+| [oasyce-chain](https://github.com/Shangri-la-0428/oasyce-chain) | L1 共识和结算 |
+| [oasyce](https://github.com/Shangri-la-0428/Oasyce_Claw_Plugin_Engine) | Python 客户端、CLI、Dashboard |
+| **DataVault** (本仓库) | AI Agent 数据资产管理 Skill |
+
+## 当前进度
+
+- v0.2.0 发布，44 个测试通过
+- 确定性扫描 + SHA-256 哈希 + 文件分类
+- 正则 PII 检测（邮箱、信用卡、API 密钥、身份证）
+- SQLite 本地清单
+- Oasyce 桥接注册
+- AI Agent Skill 模式（CLAUDE.md 内置 SOP）
+- `--confirm` 标志防止意外注册
+
+## 许可证
 
 MIT
