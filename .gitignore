@@ -5,3 +5,9 @@ build/
 .eggs/
 *.pyc
 .pytest_cache/
+venv/
+.venv/
+*.db
+*.sqlite
+.env
+.DS_Store
