@@ -1,39 +1,79 @@
 # DataVault
 
-Local-first data asset manager — scan, classify, organize, report.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Know what you have before you decide what to share.
+**AI agent skill for data asset management.**
+
+DataVault gives your AI a standardized workflow for scanning, classifying, and safely registering data assets. It's not a replacement for AI judgment — it's a consistent SOP that ensures every agent follows the same rules.
+
+## Why?
+
+Your AI can already read files and classify data. But without DataVault:
+- Every session applies different standards
+- Privacy checks are probabilistic (LLM might miss a credit card number)
+- There's no audit trail of what was checked
+- Users don't think to ask their AI to manage data assets
+
+DataVault solves this by providing **deterministic rules** (regex-based PII detection, extension-based classification) plus a **standard pipeline** that AI agents follow automatically.
 
 ## Install
 
 ```bash
-pip install datavault
+pip install odv              # Standalone
+pip install odv[oasyce]      # With Oasyce bridge
 ```
 
 ## Usage
 
 ```bash
-# Scan current directory
-datavault scan
-
-# Scan a specific path
-datavault scan ~/Documents
-
-# Classify a single file
-datavault classify report.pdf
-
-# Generate a report
-datavault report ~/Documents
-datavault report ~/Documents --format json
+datavault scan ~/Documents          # Scan & catalog files (SHA-256 hash)
+datavault classify                  # Auto-detect file types
+datavault privacy                   # Scan for PII (ID cards, credit cards, API keys)
+datavault report                    # Review results before publishing
+datavault register --confirm        # Register safe assets to Oasyce (explicit action)
 ```
 
-## With Oasyce
+### As an AI Skill
 
-DataVault works standalone. When paired with [Oasyce](https://github.com/Shangri-la-0428/Oasyce_Claw_Plugin_Engine), your cataloged assets can be registered, priced, and traded on the decentralized settlement network.
+When used by Claude Code, Cursor, or any AI coding agent:
 
-```bash
-pip install datavault[oasyce]
 ```
+User: "Help me manage my data assets in ~/Documents"
+
+AI (with DataVault skill):
+  1. datavault scan ~/Documents     -> catalogs 342 files
+  2. datavault privacy              -> flags 12 files with PII
+  3. datavault report --format json -> shows 330 safe files
+  4. "I found 330 files safe to register. 12 contain sensitive data
+     (credit card numbers, API keys). Want me to register the safe ones?"
+  5. datavault register --confirm   -> registers to Oasyce
+```
+
+Without DataVault, the AI would freestyle this process differently every time.
+
+## Pipeline
+
+```
+scan (local) -> classify (local) -> privacy (local) -> report (local)
+                                                           |
+                                                     user reviews
+                                                           |
+                                                    register (chain)
+```
+
+Everything above the line is local and free. The register step is an explicit, confirmed action that publishes to the Oasyce network.
+
+## What Goes On-Chain?
+
+Only the **SHA-256 hash** and **metadata** (name, tags, rights type). Never the original file content. The file stays on your machine.
+
+## Ecosystem
+
+| Component | Role |
+|-----------|------|
+| [oasyce-chain](https://github.com/oasyce/chain) | L1 consensus & settlement |
+| [oasyce](https://github.com/Shangri-la-0428/Oasyce_Claw_Plugin_Engine) | Python client, CLI, Dashboard |
+| **DataVault** (this repo) | AI agent data management skill |
 
 ## License
 
